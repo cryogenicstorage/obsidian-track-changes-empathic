@@ -9,6 +9,8 @@ import {
   MenuItem,
 } from "obsidian";
 import { EditorView } from "@codemirror/view";
+import { CriticMarkupIndex } from "./criticmarkup-index";
+import { ExplorerDecorations } from "./explorer-decorations";
 import { isolateHistory } from "@codemirror/commands";
 import type { Extension } from "@codemirror/state";
 
@@ -84,6 +86,10 @@ const CURSOR_COMMANDS: ReadonlyArray<{
 
 export default class TrackChangesCriticMarkupPlugin extends Plugin {
   settings!: TrackChangesCriticMarkupSettings;
+  private markupIndex?: CriticMarkupIndex;
+  private explorerDecorations?: ExplorerDecorations;
+  private layoutReady = false;
+  private unloaded = false;
 
   // Mutable so a settings toggle can swap the decoration extension and force a
   // rebuild via workspace.updateOptions() (the field is otherwise only rebuilt
@@ -216,15 +222,35 @@ export default class TrackChangesCriticMarkupPlugin extends Plugin {
     // Settings tab.
     this.addSettingTab(new TrackChangesCriticMarkupSettingsTab(this.app, this));
 
-    // Open panel automatically after layout is ready, if not already.
     this.app.workspace.onLayoutReady(() => {
-      // Don't force-open on first run; user can use the ribbon/command.
+      if (this.unloaded) return;
+      this.layoutReady = true;
+      this.refreshExplorerHighlighting();
     });
   }
 
   onunload(): void {
+    this.unloaded = true;
     // Leaves of our view type are detached automatically when their root is.
     // (Obsidian guidance: do NOT call detachLeavesOfType in onunload.)
+  }
+
+  refreshExplorerHighlighting(): void {
+    if (!this.layoutReady || this.unloaded) return;
+    if (!this.settings.highlightFilesWithCriticMarkup) {
+      if (this.explorerDecorations) this.removeChild(this.explorerDecorations);
+      if (this.markupIndex) this.removeChild(this.markupIndex);
+      this.explorerDecorations = undefined;
+      this.markupIndex = undefined;
+      return;
+    }
+    if (this.markupIndex) return;
+    const index = new CriticMarkupIndex(this.app.vault, () => this.explorerDecorations?.refresh());
+    this.markupIndex = index;
+    this.explorerDecorations = this.addChild(new ExplorerDecorations(
+      this.app.workspace, (path) => index.has(path),
+    ));
+    this.addChild(index);
   }
 
   async loadSettings(): Promise<void> {

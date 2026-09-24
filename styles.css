@@ -6,6 +6,13 @@
  *  - Inline rendering must be visually quiet enough to read prose around it.
  */
 
+/* File explorer: color plus an underline so the signal isn't color alone. */
+.nav-file-title.tc-explorer-marked .nav-file-title-content {
+  color: var(--text-accent);
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
 /* ---------- Author hue palette ----------
  *
  * Per-author tinting. The hue index is set by JS via data-author-hue="0..7"
