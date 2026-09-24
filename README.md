@@ -36,6 +36,25 @@ Intended for AI-assisted review: the agent leaves `{++…++}`, `{--…--}`, `{~~
 - *Insert addition*, *Mark selection as deletion*, *Mark selection for substitution*, *Highlight selection*, *Insert comment* — also under *Track changes* in the editor's right-click menu
 - *Accept change at cursor*, *Reject change at cursor*, *Remove highlight at cursor*, *Delete comment at cursor* — act on the mark the cursor is in; bind hotkeys for fast review. Also under *Track changes* in the right-click menu when the cursor is on a matching mark
 
+## File explorer highlighting
+
+Enable **Highlight files containing CriticMarkup** under **Editing & display**
+in the plugin settings (off by default). Matching Markdown filenames use the
+theme's accent color and a dotted underline. All six parser-supported forms,
+including comments, metadata-prefixed marks, and AI-added text, count; markup
+inside code examples does not.
+
+The plugin scans saved notes after the workspace layout is ready, then updates
+an in-memory path index on vault create, modify, rename, and delete events.
+External editor and coding-agent writes are picked up when Obsidian reports
+them through those events; unsaved editor text is reflected when saved.
+Turning the setting off removes the decorations and stops indexing. No external
+tools or runtime dependencies are required.
+
+Explorer decoration uses Obsidian's file explorer DOM conventions, isolated in
+`src/explorer-decorations.ts`; an Obsidian UI change may require updating that
+adapter.
+
 ## Install
 
 **Community Plugins** → search "Track Changes" ([community.obsidian.md](https://community.obsidian.md/plugins/track-changes)).
