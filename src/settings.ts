@@ -4,6 +4,8 @@ import { DEFAULT_FINALIZE, type FinalizeOptions } from "./operations";
 import type { ReplyDateStyle } from "./operations";
 
 export interface TrackChangesCriticMarkupSettings {
+  /** Scan saved Markdown files and mark matching file explorer entries. */
+  highlightFilesWithCriticMarkup: boolean;
   /**
    * Show comment icons in reading mode. On by default — each thread renders
    * as a single inline icon; hovering reveals the full thread. Turn off for
@@ -46,6 +48,7 @@ export interface TrackChangesCriticMarkupSettings {
 }
 
 export const DEFAULT_SETTINGS: TrackChangesCriticMarkupSettings = {
+  highlightFilesWithCriticMarkup: false,
   readingShowComments: true,
   revealMarkupOnCommentJump: false,
   clickMarksToOpenPanel: false,
@@ -87,6 +90,11 @@ export class TrackChangesCriticMarkupSettingsTab extends PluginSettingTab {
         type: "group",
         heading: "Editing & display",
         items: [
+          {
+            name: "Highlight files containing CriticMarkup",
+            desc: "Mark Markdown files in the file explorer when they contain changes, comments, highlights, or AI-added text. Code examples are ignored.",
+            control: { type: "toggle", key: "highlightFilesWithCriticMarkup" },
+          },
           {
             name: "Show comments in reading view",
             desc: "Render comment threads as hover icons in reading view. Off hides them for a clean preview. Suggestions always show in accepted form.",
@@ -207,6 +215,7 @@ export class TrackChangesCriticMarkupSettingsTab extends PluginSettingTab {
     await this.plugin.saveSettings();
 
     if (key === "readingShowComments") this.plugin.rerenderReadingViews();
+    else if (key === "highlightFilesWithCriticMarkup") this.plugin.refreshExplorerHighlighting();
     else if (key === "highlightChangedChars") this.plugin.refreshCharHighlighting();
   }
 }
